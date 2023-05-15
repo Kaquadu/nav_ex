@@ -1,18 +1,6 @@
 defmodule NavEx do
   @moduledoc """
-  Documentation for `NavEx`.
+    NavEx keeps the contexts that define your domain
+    and business logic.
   """
-
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> NavEx.hello()
-      :world
-
-  """
-  def hello do
-    :world
-  end
 end
