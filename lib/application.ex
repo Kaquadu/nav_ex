@@ -2,9 +2,11 @@ defmodule NavEx.Application do
   use Application
 
   def start(_type, _args) do
-    children = []
+    children = [
+      NavEx.RecordsStorage
+    ]
 
-    opts = [strategy: :one_for_one, name: Tappla.Supervisor]
+    opts = [strategy: :one_for_one, name: NavEx.Supervisor]
     Supervisor.start_link(children, opts)
   end
 end
