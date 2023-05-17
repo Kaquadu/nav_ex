@@ -113,7 +113,7 @@ defmodule NavExTest do
     end
   end
 
-  describe "path_at/1" do
+  describe "path_at/2" do
     test "if user existis returns Nth record counting from 0" do
       conn =
         Enum.reduce(1..2, conn(:get, "/sample/request/0"), fn n, conn ->
