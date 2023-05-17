@@ -2,7 +2,7 @@ defmodule NavEx.RecordsStorage do
   use GenServer
 
   @table_name Application.compile_env(:nav_ex, :table_name) || :navigation_history
-  @history_length (Application.compile_env(:nav_ex, :table_name) || 10) + 1
+  @history_length (Application.compile_env(:nav_ex, :history_length) || 10) + 1
 
   def start_link(_opts) do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
@@ -15,57 +15,57 @@ defmodule NavEx.RecordsStorage do
 
   ###
 
-  def insert(hashed_user, request_path) do
-    case :ets.lookup(@table_name, hashed_user) do
+  def insert(user_identity, request_path) do
+    case :ets.lookup(@table_name, user_identity) do
       [] ->
-        {:ok, :ets.insert(@table_name, {hashed_user, [request_path]})}
+        {:ok, :ets.insert(@table_name, {user_identity, [request_path]})}
 
       [user_data] ->
         handle_user_data(user_data, request_path)
     end
   end
 
-  def list(hashed_user) do
-    {:ok, :ets.lookup(@table_name, hashed_user)}
+  def list(user_identity) do
+    {:ok, :ets.lookup(@table_name, user_identity)}
   end
 
-  def last_path(hashed_user) do
-    case :ets.lookup(@table_name, hashed_user) do
+  def last_path(user_identity) do
+    case :ets.lookup(@table_name, user_identity) do
       [] ->
         {:error, :not_found}
 
-      [{_hashed_user, history}] ->
+      [{_user_identity, history}] ->
         {:ok, Enum.at(history, 1)}
     end
   end
 
-  def path_at(hashed_user, n) when n < @history_length - 1 do
-    case :ets.lookup(@table_name, hashed_user) do
+  def path_at(user_identity, n) when n < @history_length - 1 do
+    case :ets.lookup(@table_name, user_identity) do
       [] ->
         {:error, :not_found}
 
-      [{_hashed_user, history}] ->
+      [{_user_identity, history}] ->
         {:ok, Enum.at(history, n)}
     end
   end
 
-  def path_at(_hashed_user, n) do
+  def path_at(_user_identity, n) do
     raise ArgumentError,
       message:
         "Max history depth is #{@history_length - 1} counted from 0 to #{@history_length - 2}. You asked for record number #{n}."
   end
 
-  def delete_user(hashed_user) do
-    :ets.delete(@table_name, hashed_user)
+  def delete_user(user_identity) do
+    :ets.delete(@table_name, user_identity)
   end
 
   def delete_all_objects, do: :ets.delete_all_objects(@table_name)
 
   ###
 
-  defp handle_user_data({hashed_user, navigation_history}, request_path) do
+  defp handle_user_data({user_identity, navigation_history}, request_path) do
     if length(navigation_history) < @history_length do
-      {:ok, :ets.insert(@table_name, {hashed_user, [request_path | navigation_history]})}
+      {:ok, :ets.insert(@table_name, {user_identity, [request_path | navigation_history]})}
     else
       cut_navigation_history =
         navigation_history
@@ -73,7 +73,7 @@ defmodule NavEx.RecordsStorage do
         |> tl()
         |> Enum.reverse()
 
-      {:ok, :ets.insert(@table_name, {hashed_user, [request_path | cut_navigation_history]})}
+      {:ok, :ets.insert(@table_name, {user_identity, [request_path | cut_navigation_history]})}
     end
   end
 end
