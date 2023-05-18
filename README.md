@@ -1,15 +1,19 @@
 # *WORK IN PROGRESS - NOT TESTED YET*.
-This project is in progress. It is just created and it needs a lot of polishing probably. Feel free to provide any kind of feedback in issues.
+This project is in progress. It is just created and it needs a lot of polishing. Feel free to provide any kind of feedback in issues.
 
 # NavEx
-This is the navigation history package for Elixir/Phoenix framework. It uses [Plug](https://github.com/elixir-plug/plug) and [ETS](https://www.erlang.org/doc/man/ets.html) underneath.
+NavEx is the navigation history package for Elixir/Phoenix Framework. It uses adapter pattern and lets you choose between a few adapters to keep your users navigation history.
 
-## General concept
-This is a simple plug saving user's navigation history. It creates an identity for user in cookies and uses it to save his history in ETS.
+## Adapters
+
+### NavEx.Adapters.ETS
+Keeps user's navigation history in the ETS. It saves user's identity in his cookies.
+
+### NavEx.Adapters.Session
+Keeps user's navigation history in session. Might lead to cookies overflow error when navigation history config or links are too long.
 
 ## Installation
-
-For now the package can be installed by adding `nav_ex` to your list of dependencies in `mix.exs`, it is not available as HexDependency:
+For now the package can be installed by adding `nav_ex` as a GitHub dependency in `mix.exs`, it is not available as HexDependency yet:
 
 ```elixir
 def deps do
@@ -19,15 +23,29 @@ def deps do
 end
 ```
 
-## Usage
-Configuration:
+It might be added to HexDependencies once I feel that it is ready enough for it :D
+
+## Configuration:
+### NavEx
 ```
   config :nav_ex,
-    cookies_key: "nav_ex_identity",
-    tracked_methods: ["GET"],
-    table_name: :navigation_history,
-    history_length: 10
+    tracked_methods: ["GET"], # what methods to track
+    history_length: 10, # what is the history list length per user
+    adapter: NavEx.Adapters.ETS # adapter used by NavEx to save data
 ```
+### Adapters
+```
+  config NavEx.Adapters.ETS,
+    identity_key: "nav_ex_identity", # name of the key in cookies where the user's identity is saved
+    table_name: :navigation_history # name of the ETS table
+```
+
+```
+  config NavEx.Adapters.Session,
+    history_key: "nav_ex_history" # name of the key in session where navigation history is saved
+```
+
+## Usage
 
 ```
 defmodule MyApp.Router do
@@ -40,7 +58,7 @@ defmodule MyApp.Router do
 end
 ```
 
-*NavEx.last_path/1*
+**NavEx.last_path/1**\
 It returns 2nd last path.
 ```
 # for existing user
@@ -56,7 +74,7 @@ iex(3)> NavEx.last_path(conn)
 {:error, :not_found}
 ```
 
-*NavEx.path_at/2*
+**NavEx.path_at/2**\
 It returns Nth path counted from 0.
 ```
 # for existing user
@@ -75,7 +93,7 @@ iex(4)> NavEx.path_at(conn, 999)
 ** (ArgumentError) Max history depth is 10 counted from 0 to 9. You asked for record number 999.
 ```
 
-*NavEx.list/1*
+**NavEx.list/1**\
 Lists user's paths. Older paths have higher indexes.
 ```
 # for existing user
