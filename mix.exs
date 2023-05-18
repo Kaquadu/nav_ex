@@ -8,7 +8,15 @@ defmodule NavEx.MixProject do
       elixir: "~> 1.14",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+
+      # Docs
+      name: "NavEx",
+      source_url: "https://github.com/Kaquadu/nav_ex",
+      docs: [
+        main: "NavEx", # The main page in the docs
+        extras: ["README.md"]
+      ]
     ]
   end
 
@@ -24,7 +32,8 @@ defmodule NavEx.MixProject do
   defp deps do
     [
       {:plug_cowboy, "~> 2.0"},
-      {:credo, "~> 1.7", only: [:dev, :test], runtime: false}
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:ex_doc, "~> 0.27", only: :dev, runtime: false}
     ]
   end
 

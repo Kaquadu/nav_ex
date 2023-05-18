@@ -1,4 +1,7 @@
 defmodule NavEx do
+  @moduledoc """
+    This is the main NavEx module responsible for main project domain.
+  """
   import Plug.Conn
 
   alias NavEx.RecordsStorage
@@ -7,6 +10,18 @@ defmodule NavEx do
   @cookies_key Application.compile_env(:nav_ex, :cookies_key) || "nav_ex_identity"
   @tracked_methods Application.compile_env(:nav_ex, :tracked_methods) || ["GET"]
 
+  @doc """
+    Used by ExNav.Plug.
+
+    Takes %Plug.Conn{} as an input.
+
+    If conn doesn't have user identity cookie it creates it.
+    Then it adds the request path if its request method is in tracked methods.
+
+    ## Examples
+      iex(1)> NavEx.insert(conn)
+      {:ok, %Plug.Conn{...}}
+  """
   def insert(%Plug.Conn{request_path: request_path, method: method} = conn)
       when method in @tracked_methods do
     {conn, user_identity} = maybe_insert_identity(conn)
@@ -17,6 +32,19 @@ defmodule NavEx do
 
   def insert(%Plug.Conn{} = conn), do: {:ok, conn}
 
+  @doc """
+    Takes %Plug.Conn{} as an input. Based on the user identity stored in cookies
+    lists user's navigation history list.
+
+    ## Examples
+      # for existing user
+      iex(1)> NavEx.list(conn)
+      {:ok, ["/sample/path/2", "sample/path/1]}
+
+      # for not existing user
+      iex(2)> NavEx.list(conn)
+      {:error, :not_found}
+  """
   def list(%Plug.Conn{} = conn) do
     with {:ok, user_identity} <- get_identity(conn),
          {:ok, [{_user_identity, list}]} <- RecordsStorage.list(user_identity) do
@@ -24,6 +52,23 @@ defmodule NavEx do
     end
   end
 
+  @doc """
+    Takes %Plug.Conn{} as an input. Based on the user identity stored in cookies
+    returns user's last visited path, that is 2nd path in the navigation history.
+
+    ## Examples
+      # for existing user
+      iex(1)> NavEx.last_path(conn)
+      {:ok, "/sample/path"}
+
+      # for existing user, but without 2 paths
+      iex(2)> NavEx.last_path(conn)
+      {:ok, nil}
+
+      # for not existing user
+      iex(3)> NavEx.last_path(conn)
+      {:error, :not_found}
+  """
   def last_path(%Plug.Conn{} = conn) do
     conn
     |> get_identity()
@@ -36,7 +81,27 @@ defmodule NavEx do
     end
   end
 
-  def path_at(%Plug.Conn{} = conn, n) do
+  @doc """
+    Takes %Plug.Conn{} and number as inputs. Based on the user identity stored in cookies
+    returns user's Nth visited path counted from 0.
+
+    ## Examples
+      # for existing user
+      iex(1)> NavEx.path_at(conn, 5)
+      {:ok, "/sample/path"}
+
+      # for existing user but exceeding paths number
+      iex(2)> NavEx.path_at(conn, 5)
+      {:ok, nil}
+
+      # for not existing user
+      iex(3)> NavEx.path_at(conn, 5)
+      {:error, :not_found}
+
+      iex(4)> NavEx.path_at(conn, 999)
+      ** (ArgumentError) Max history depth is 10 counted from 0 to 9. You asked for record number 999.
+  """
+  def path_at(%Plug.Conn{} = conn, n) when is_integer(n) do
     conn
     |> get_identity()
     |> case do
