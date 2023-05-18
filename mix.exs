@@ -14,7 +14,8 @@ defmodule NavEx.MixProject do
       name: "NavEx",
       source_url: "https://github.com/Kaquadu/nav_ex",
       docs: [
-        main: "NavEx", # The main page in the docs
+        # The main page in the docs
+        main: "NavEx",
         extras: ["README.md"]
       ]
     ]
