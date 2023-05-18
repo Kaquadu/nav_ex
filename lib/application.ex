@@ -1,6 +1,8 @@
 defmodule NavEx.Application do
+  @moduledoc false
   use Application
 
+  @doc false
   def start(_type, _args) do
     children = [
       NavEx.RecordsStorage

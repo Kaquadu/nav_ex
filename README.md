@@ -63,7 +63,7 @@ It returns Nth path counted from 0.
 iex(1)> NavEx.path_at(conn, 5)
 {:ok, "/sample/path"}
 
-# for existing user but exceeding hist paths
+# for existing user but exceeding paths number
 iex(2)> NavEx.path_at(conn, 5)
 {:ok, nil}
 
