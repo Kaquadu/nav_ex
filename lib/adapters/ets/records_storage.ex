@@ -1,7 +1,7 @@
-defmodule NavEx.RecordsStorage do
+defmodule NavEx.Adapters.ETS.RecordsStorage do
   use GenServer
 
-  @table_name Application.compile_env(:nav_ex, :table_name) || :navigation_history
+  @table_name Application.compile_env(NavEx.Adapters.ETS, :table_name) || :navigation_history
   @history_length (Application.compile_env(:nav_ex, :history_length) || 10) + 1
 
   def start_link(_opts) do
@@ -47,12 +47,6 @@ defmodule NavEx.RecordsStorage do
       [{_user_identity, history}] ->
         {:ok, Enum.at(history, n)}
     end
-  end
-
-  def path_at(_user_identity, n) do
-    raise ArgumentError,
-      message:
-        "Max history depth is #{@history_length - 1} counted from 0 to #{@history_length - 2}. You asked for record number #{n}."
   end
 
   def delete_user(user_identity) do

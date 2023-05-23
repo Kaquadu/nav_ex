@@ -1,40 +1,35 @@
 defmodule NavEx do
   @moduledoc """
-    This is the main NavEx module responsible for main project domain.
+    NavEx is a navigation history tool that uses adapter pattern
+    and lets you choose between available adapters or just to
+    write your own adapter.
+
+    There are 2 available adapters right now - ETS adapter storing
+    user navigation history in the ETS and Session adapter storing
+    user navigation history in user's sessions.
   """
-  import Plug.Conn
 
-  alias NavEx.RecordsStorage
-
-  @key_length 128
-  @cookies_key Application.compile_env(:nav_ex, :cookies_key) || "nav_ex_identity"
+  @adapter Application.compile_env(:nav_ex, :adapter) || NavEx.Adapters.ETS
   @tracked_methods Application.compile_env(:nav_ex, :tracked_methods) || ["GET"]
+  @history_length (Application.compile_env(:nav_ex, :history_length) || 10) + 1
 
   @doc """
-    Used by ExNav.Plug.
+    Used by ExNav.Plug. Takes %Plug.Conn{} as an input.
 
-    Takes %Plug.Conn{} as an input.
-
-    If conn doesn't have user identity cookie it creates it.
-    Then it adds the request path if its request method is in tracked methods.
+    Calls Adapter `insert/1` function. Always returns `{:ok, %Plug.Conn{}}` tuple.
 
     ## Examples
       iex(1)> NavEx.insert(conn)
       {:ok, %Plug.Conn{...}}
   """
-  def insert(%Plug.Conn{request_path: request_path, method: method} = conn)
-      when method in @tracked_methods do
-    {conn, user_identity} = maybe_insert_identity(conn)
-    {:ok, _result} = RecordsStorage.insert(user_identity, request_path)
-
-    {:ok, conn}
-  end
+  def insert(%Plug.Conn{method: method} = conn)
+      when method in @tracked_methods,
+      do: @adapter.insert(conn)
 
   def insert(%Plug.Conn{} = conn), do: {:ok, conn}
 
   @doc """
-    Takes %Plug.Conn{} as an input. Based on the user identity stored in cookies
-    lists user's navigation history list.
+    Takes %Plug.Conn{} as an input. Calls Adapter `list/1` function.
 
     ## Examples
       # for existing user
@@ -45,16 +40,10 @@ defmodule NavEx do
       iex(2)> NavEx.list(conn)
       {:error, :not_found}
   """
-  def list(%Plug.Conn{} = conn) do
-    with {:ok, user_identity} <- get_identity(conn),
-         {:ok, [{_user_identity, list}]} <- RecordsStorage.list(user_identity) do
-      {:ok, list}
-    end
-  end
+  def list(%Plug.Conn{} = conn), do: @adapter.list(conn)
 
   @doc """
-    Takes %Plug.Conn{} as an input. Based on the user identity stored in cookies
-    returns user's last visited path, that is 2nd path in the navigation history.
+    Takes %Plug.Conn{} as an input. Calls Adapter `last_path/1` function.
 
     ## Examples
       # for existing user
@@ -69,21 +58,10 @@ defmodule NavEx do
       iex(3)> NavEx.last_path(conn)
       {:error, :not_found}
   """
-  def last_path(%Plug.Conn{} = conn) do
-    conn
-    |> get_identity()
-    |> case do
-      {:ok, user_identity} ->
-        RecordsStorage.last_path(user_identity)
-
-      error ->
-        error
-    end
-  end
+  def last_path(%Plug.Conn{} = conn), do: @adapter.last_path(conn)
 
   @doc """
-    Takes %Plug.Conn{} and number as inputs. Based on the user identity stored in cookies
-    returns user's Nth visited path counted from 0.
+    Takes %Plug.Conn{} and number as inputs. Calls Adapter `path_at/1` function.
 
     ## Examples
       # for existing user
@@ -98,50 +76,10 @@ defmodule NavEx do
       iex(3)> NavEx.path_at(conn, 5)
       {:error, :not_found}
 
+      # exceeding history limit
       iex(4)> NavEx.path_at(conn, 999)
       ** (ArgumentError) Max history depth is 10 counted from 0 to 9. You asked for record number 999.
   """
-  def path_at(%Plug.Conn{} = conn, n) when is_integer(n) do
-    conn
-    |> get_identity()
-    |> case do
-      {:ok, user_identity} ->
-        RecordsStorage.path_at(user_identity, n)
-
-      error ->
-        error
-    end
-  end
-
-  ###
-
-  defp maybe_insert_identity(%Plug.Conn{} = conn) do
-    conn
-    |> fetch_cookies()
-    |> case do
-      %{cookies: %{@cookies_key => user_identity}} ->
-        {conn, user_identity}
-
-      _no_identity ->
-        user_identity = create_user_identity()
-        conn = put_resp_cookie(conn, @cookies_key, user_identity)
-        {conn, user_identity}
-    end
-  end
-
-  defp get_identity(%Plug.Conn{} = conn) do
-    conn
-    |> fetch_cookies()
-    |> case do
-      %{cookies: %{@cookies_key => user_identity}} ->
-        {:ok, user_identity}
-
-      _no_identity ->
-        {:error, :not_found}
-    end
-  end
-
-  defp create_user_identity() do
-    :crypto.strong_rand_bytes(@key_length) |> Base.url_encode64() |> binary_part(0, @key_length)
-  end
+  def path_at(%Plug.Conn{} = conn, n) when is_integer(n) and n < @history_length - 1,
+    do: @adapter.path_at(conn, n)
 end
