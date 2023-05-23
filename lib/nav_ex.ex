@@ -7,6 +7,21 @@ defmodule NavEx do
     There are 2 available adapters right now - ETS adapter storing
     user navigation history in the ETS and Session adapter storing
     user navigation history in user's sessions.
+
+    ## Configuration:
+        config :nav_ex,
+        tracked_methods: ["GET"], # what methods to track
+        history_length: 10, # what is the history list length per user
+        adapter: NavEx.Adapters.ETS # adapter used by NavEx to save data
+
+    ### ETS Adapter config
+      config NavEx.Adapters.ETS,
+        identity_key: "nav_ex_identity", # name of the key in cookies where the user's identity is saved
+        table_name: :navigation_history # name of the ETS table
+
+    ## Session Adapter config
+      config NavEx.Adapters.Session,
+        history_key: "nav_ex_history" # name of the key in session where navigation history is saved
   """
 
   @adapter Application.compile_env(:nav_ex, :adapter) || NavEx.Adapters.ETS

@@ -1,4 +1,13 @@
 defmodule NavEx.Adapters.Session do
+  @moduledoc """
+    NavEx.Adapters.Session is adapter for keeping user's navigation history
+    utilizing Plug.Conn session.
+
+     ## Adapter config
+      config NavEx.Adapters.Session,
+        history_key: "nav_ex_history" # name of the key in session where navigation history is saved
+  """
+
   @behaviour NavEx.Adapter
 
   import Plug.Conn

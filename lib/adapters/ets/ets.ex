@@ -1,4 +1,15 @@
 defmodule NavEx.Adapters.ETS do
+  @moduledoc """
+    NavEx.Adapters.ETS is adapter for keeping user's navigation history
+    utilizing ETS. It uses NavEx.Adapters.ETS.RecordsStorage as the
+    module to interact with the ETS table.
+
+     ## Adapter config
+      config NavEx.Adapters.ETS,
+        identity_key: "nav_ex_identity", # name of the key in cookies where the user's identity is saved
+        table_name: :navigation_history # name of the ETS table
+  """
+
   @behaviour NavEx.Adapter
   import Plug.Conn
 
