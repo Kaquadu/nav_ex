@@ -3,8 +3,6 @@ defmodule NavEx.Plug do
     This is the Plug gathering data about visited paths.
   """
 
-  import Plug.Conn
-
   @doc false
   def init(opts), do: opts
 

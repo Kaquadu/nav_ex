@@ -49,12 +49,6 @@ defmodule NavEx.Adapters.ETS.RecordsStorage do
     end
   end
 
-  def path_at(_user_identity, n) do
-    raise ArgumentError,
-      message:
-        "Max history depth is #{@history_length - 1} counted from 0 to #{@history_length - 2}. You asked for record number #{n}."
-  end
-
   def delete_user(user_identity) do
     :ets.delete(@table_name, user_identity)
   end

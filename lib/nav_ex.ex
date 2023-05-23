@@ -11,6 +11,7 @@ defmodule NavEx do
 
   @adapter Application.compile_env(:nav_ex, :adapter) || NavEx.Adapters.ETS
   @tracked_methods Application.compile_env(:nav_ex, :tracked_methods) || ["GET"]
+  @history_length (Application.compile_env(:nav_ex, :history_length) || 10) + 1
 
   @doc """
     Used by ExNav.Plug. Takes %Plug.Conn{} as an input.
@@ -79,5 +80,6 @@ defmodule NavEx do
       iex(4)> NavEx.path_at(conn, 999)
       ** (ArgumentError) Max history depth is 10 counted from 0 to 9. You asked for record number 999.
   """
-  def path_at(%Plug.Conn{} = conn, n) when is_integer(n), do: @adapter.path_at(conn, n)
+  def path_at(%Plug.Conn{} = conn, n) when is_integer(n) and n < @history_length - 1,
+    do: @adapter.path_at(conn, n)
 end

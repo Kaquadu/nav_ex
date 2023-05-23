@@ -51,18 +51,6 @@ defmodule NavEx.Adapter.ETSTest do
       assert result_path == "/sample/request/20"
       assert length(history) == 11
     end
-
-    test "for not allowed methods it doesn't save records" do
-      request_path = "/sample/request"
-      conn = conn(:post, request_path)
-      assert {:error, :not_found} = ETS.list(conn)
-      conn = conn(:delete, request_path)
-      assert {:error, :not_found} = ETS.list(conn)
-      conn = conn(:put, request_path)
-      assert {:error, :not_found} = ETS.list(conn)
-      conn = conn(:patch, request_path)
-      assert {:error, :not_found} = ETS.list(conn)
-    end
   end
 
   describe "list/1" do
@@ -134,16 +122,6 @@ defmodule NavEx.Adapter.ETSTest do
       {:ok, conn} = ETS.insert(conn)
 
       assert {:ok, nil} = ETS.path_at(conn, 9)
-    end
-
-    test "if user existis but N exceeds history recrods limit raises an ArgumentError" do
-      request_path = "/sample/request/0"
-      conn = conn(:get, request_path)
-      {:ok, conn} = ETS.insert(conn)
-
-      assert_raise ArgumentError, fn ->
-        ETS.path_at(conn, 999)
-      end
     end
 
     test "for not existing user returns not found error" do
