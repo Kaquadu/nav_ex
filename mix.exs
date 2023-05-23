@@ -10,6 +10,7 @@ defmodule NavEx.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       package: package(),
+      description: description(),
 
       # Docs
       name: "NavEx",
@@ -50,5 +51,9 @@ defmodule NavEx.MixProject do
       licenses: ["MIT"],
       links: %{"GitHub" => "https://github.com/Kaquadu/nav_ex"}
     ]
+  end
+
+  defp description() do
+    "NavEx is the navigation history package for Elixir/Phoenix Framework. It uses adapter pattern and lets you choose between a few adapters to keep your users navigation history."
   end
 end
