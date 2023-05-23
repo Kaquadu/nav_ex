@@ -13,12 +13,12 @@ Keeps user's navigation history in the ETS. It saves user's identity in his cook
 Keeps user's navigation history in session. Might lead to cookies overflow error when navigation history config or links are too long.
 
 ## Installation
-For now the package can be installed by adding `nav_ex` as a GitHub dependency in `mix.exs`, it is not available as HexDependency yet:
+NavEx can be installed by adding `nav_ex` as a dependency in `mix.exs`:
 
 ```elixir
 def deps do
   [
-    {:gettext, git: "https://github.com/Kaquadu/nav_ex.git", tag: "0.0.0"}
+    {:nav_ex, "~> 0.1.0"}
   ]
 end
 ```
