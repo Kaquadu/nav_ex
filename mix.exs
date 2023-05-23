@@ -9,6 +9,7 @@ defmodule NavEx.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      package: package(),
 
       # Docs
       name: "NavEx",
@@ -41,4 +42,13 @@ defmodule NavEx.MixProject do
   # Specifies which paths to compile per environment.
   defp elixirc_paths(:test), do: ["lib", "test"]
   defp elixirc_paths(_), do: ["lib"]
+
+  defp package() do
+    [
+      files: ~w(lib priv .formatter.exs mix.exs README* readme* LICENSE*
+                license* CHANGELOG* changelog* src),
+      licenses: ["MIT"],
+      links: %{"GitHub" => "https://github.com/Kaquadu/nav_ex"}
+    ]
+  end
 end
