@@ -1,4 +1,7 @@
 defmodule NavEx.Adapters.ETS.RecordsStorage do
+  @moduledoc """
+  NavEx.Adapters.ETS.RecordsStorage is a GenServer that manages the navigation history of users using ETS (Erlang Term Storage).
+  """
   use GenServer
 
   @table_name Application.compile_env(NavEx.Adapters.ETS, :table_name) || :navigation_history
