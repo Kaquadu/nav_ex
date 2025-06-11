@@ -1,7 +1,5 @@
-# *WORK IN PROGRESS - NOT TESTED YET*.
-This project is in progress. It is just created and it needs a lot of polishing. Feel free to provide any kind of feedback in issues.
-
 # NavEx
+**Information: NavEx is currently being tested. Please notify about any bugs that might be there in Issues. Contributions welcome.**
 NavEx is the navigation history package for Elixir/Phoenix Framework. It uses adapter pattern and lets you choose between a few adapters to keep your users navigation history.
 
 ## Adapters

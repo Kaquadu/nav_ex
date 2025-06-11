@@ -1,4 +1,5 @@
 defmodule NavEx.ConnCase do
+  @moduledoc false
   use ExUnit.CaseTemplate
 
   using do
