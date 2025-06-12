@@ -30,17 +30,24 @@ It might be added to HexDependencies once I feel that it is ready enough for it 
     tracked_methods: ["GET"], # what methods to track
     history_length: 10, # what is the history list length per user
     adapter: NavEx.Adapters.ETS # adapter used by NavEx to save data
+    adapter_config: %{
+      ...
+    }
 ```
 ### Adapters
 ```
-  config NavEx.Adapters.ETS,
+  ....
+  adapter_config: %{
     identity_key: "nav_ex_identity", # name of the key in cookies where the user's identity is saved
     table_name: :navigation_history # name of the ETS table
+  }
 ```
 
 ```
-  config NavEx.Adapters.Session,
+  ....
+  adapter_config: %{
     history_key: "nav_ex_history" # name of the key in session where navigation history is saved
+  }
 ```
 
 ## Usage
@@ -50,7 +57,7 @@ defmodule MyApp.Router do
   ...
   pipeline :browser do
     ...
-    NavEx.Plug
+    plug NavEx.Plug
   end
   ...
 end

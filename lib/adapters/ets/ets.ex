@@ -16,7 +16,8 @@ defmodule NavEx.Adapters.ETS do
   alias NavEx.Adapters.ETS.RecordsStorage
 
   @key_length 128
-  @cookies_key Application.compile_env(NavEx.Adapters.ETS, :identity_key) || "nav_ex_identity"
+  @cookies_key Application.compile_env(:nav_ex, :adapter_config)[:identity_key] ||
+                 "nav_ex_identity"
 
   @impl NavEx.Adapter
   def children, do: [NavEx.Adapters.ETS.RecordsStorage]
@@ -87,7 +88,7 @@ defmodule NavEx.Adapters.ETS do
     end
   end
 
-  defp create_user_identity() do
+  defp create_user_identity do
     :crypto.strong_rand_bytes(@key_length) |> Base.url_encode64() |> binary_part(0, @key_length)
   end
 end

@@ -4,7 +4,8 @@ defmodule NavEx.Adapters.ETS.RecordsStorage do
   """
   use GenServer
 
-  @table_name Application.compile_env(NavEx.Adapters.ETS, :table_name) || :navigation_history
+  @table_name Application.compile_env(:nav_ex, :adapter_config)[:table_name] ||
+                :navigation_history
   @history_length (Application.compile_env(:nav_ex, :history_length) || 10) + 1
 
   def start_link(_opts) do
@@ -64,13 +65,10 @@ defmodule NavEx.Adapters.ETS.RecordsStorage do
     if length(navigation_history) < @history_length do
       {:ok, :ets.insert(@table_name, {user_identity, [request_path | navigation_history]})}
     else
-      cut_navigation_history =
-        navigation_history
-        |> Enum.reverse()
-        |> tl()
-        |> Enum.reverse()
+      [_last | cut_navigation_history] = Enum.reverse(navigation_history)
+      to_be_stored = Enum.reverse(cut_navigation_history)
 
-      {:ok, :ets.insert(@table_name, {user_identity, [request_path | cut_navigation_history]})}
+      {:ok, :ets.insert(@table_name, {user_identity, [request_path | to_be_stored]})}
     end
   end
 end

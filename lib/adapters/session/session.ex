@@ -12,7 +12,7 @@ defmodule NavEx.Adapters.Session do
 
   import Plug.Conn
 
-  @session_key Application.compile_env(NavEx.Adapters.Session, :history_key) || "nav_ex_history"
+  @session_key Application.compile_env(:nav_ex, :adapter_config)[:history_key] || "nav_ex_history"
   @history_length (Application.compile_env(:nav_ex, :history_length) || 10) + 1
 
   @impl NavEx.Adapter
@@ -71,13 +71,10 @@ defmodule NavEx.Adapters.Session do
     if length(history) < @history_length do
       put_session(conn, @session_key, [path | history])
     else
-      cut_history =
-        history
-        |> Enum.reverse()
-        |> tl()
-        |> Enum.reverse()
+      [_last | cut_navigation_history] = Enum.reverse(history)
+      to_be_stored = Enum.reverse(cut_navigation_history)
 
-      put_session(conn, @session_key, [path | cut_history])
+      put_session(conn, @session_key, [path | to_be_stored])
     end
   end
 end
