@@ -16,7 +16,7 @@ defmodule NavEx do
 
     ### ETS Adapter config
       config NavEx.Adapters.ETS,
-        identity_key: "nav_ex_identity", # name of the key in cookies where the user's identity is saved
+        identity_key: "nav_ex_identity", # name of the key in session where the user's identity is saved
         table_name: :navigation_history # name of the ETS table
 
     ## Session Adapter config

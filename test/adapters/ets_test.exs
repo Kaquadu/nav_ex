@@ -4,6 +4,12 @@ defmodule NavEx.Adapter.ETSTest do
   alias NavEx.Adapters.ETS
   alias NavEx.Adapters.ETS.RecordsStorage
 
+  @session_options Plug.Session.init(
+                     store: Plug.Session.COOKIE,
+                     key: "_hello_key",
+                     signing_salt: "CXlmrshG"
+                   )
+
   describe "insert/1" do
     setup do
       RecordsStorage.delete_all_objects()
@@ -11,14 +17,13 @@ defmodule NavEx.Adapter.ETSTest do
       %{}
     end
 
-    test "for new user inserts a new history record and identity into conn cookies" do
+    test "for new user inserts a new history record and identity into conn session" do
       request_path = "/sample/request"
-      conn = conn(:get, request_path)
+      conn = conn(:get, request_path) |> Plug.Session.call(@session_options) |> fetch_session()
 
       assert {:ok, conn} = ETS.insert(conn)
 
-      conn = fetch_cookies(conn)
-      refute is_nil(conn.cookies["nav_ex_identity"])
+      refute is_nil(get_session(conn, "nav_ex_identity"))
 
       assert {:ok, [result_path]} = ETS.list(conn)
       assert result_path == request_path
@@ -26,7 +31,10 @@ defmodule NavEx.Adapter.ETSTest do
 
     test "for existing user inserts a new history record for the same identity at the start of the list" do
       request_path = "/sample/request/2"
-      conn = conn(:get, "/sample/request")
+
+      conn =
+        conn(:get, "/sample/request") |> Plug.Session.call(@session_options) |> fetch_session()
+
       assert {:ok, conn} = ETS.insert(conn)
 
       assert {:ok, conn} =
@@ -42,7 +50,13 @@ defmodule NavEx.Adapter.ETSTest do
       conn =
         Enum.reduce(1..20, conn(:get, "/sample/request/0"), fn n, conn ->
           request_path = "/sample/request/#{n}"
-          conn = Map.put(conn, :request_path, request_path)
+
+          conn =
+            conn
+            |> Map.put(:request_path, request_path)
+            |> Plug.Session.call(@session_options)
+            |> fetch_session()
+
           {:ok, conn} = ETS.insert(conn)
           conn
         end)
@@ -58,7 +72,13 @@ defmodule NavEx.Adapter.ETSTest do
       conn =
         Enum.reduce(1..11, conn(:get, "/sample/request/0"), fn n, conn ->
           request_path = "/sample/request/#{n}"
-          conn = Map.put(conn, :request_path, request_path)
+
+          conn =
+            conn
+            |> Map.put(:request_path, request_path)
+            |> Plug.Session.call(@session_options)
+            |> fetch_session()
+
           {:ok, conn} = ETS.insert(conn)
           conn
         end)
@@ -69,7 +89,9 @@ defmodule NavEx.Adapter.ETSTest do
     end
 
     test "for not existing user returns not found error" do
-      conn = conn(:get, "/sample/request")
+      conn =
+        conn(:get, "/sample/request") |> Plug.Session.call(@session_options) |> fetch_session()
+
       assert {:error, :not_found} = ETS.list(conn)
     end
   end
@@ -79,7 +101,13 @@ defmodule NavEx.Adapter.ETSTest do
       conn =
         Enum.reduce(1..2, conn(:get, "/sample/request/0"), fn n, conn ->
           request_path = "/sample/request/#{n}"
-          conn = Map.put(conn, :request_path, request_path)
+
+          conn =
+            conn
+            |> Map.put(:request_path, request_path)
+            |> Plug.Session.call(@session_options)
+            |> fetch_session()
+
           {:ok, conn} = ETS.insert(conn)
           conn
         end)
@@ -90,14 +118,16 @@ defmodule NavEx.Adapter.ETSTest do
 
     test "if user existis and has only 1 record returns success tuple with nil" do
       request_path = "/sample/request/0"
-      conn = conn(:get, request_path)
+      conn = conn(:get, request_path) |> Plug.Session.call(@session_options) |> fetch_session()
       {:ok, conn} = ETS.insert(conn)
 
       assert {:ok, nil} = ETS.last_path(conn)
     end
 
     test "for not existing user returns not found error" do
-      conn = conn(:get, "/sample/request")
+      conn =
+        conn(:get, "/sample/request") |> Plug.Session.call(@session_options) |> fetch_session()
+
       assert {:error, :not_found} = ETS.last_path(conn)
     end
   end
@@ -107,7 +137,13 @@ defmodule NavEx.Adapter.ETSTest do
       conn =
         Enum.reduce(1..2, conn(:get, "/sample/request/0"), fn n, conn ->
           request_path = "/sample/request/#{n}"
-          conn = Map.put(conn, :request_path, request_path)
+
+          conn =
+            conn
+            |> Map.put(:request_path, request_path)
+            |> Plug.Session.call(@session_options)
+            |> fetch_session()
+
           {:ok, conn} = ETS.insert(conn)
           conn
         end)
@@ -118,14 +154,16 @@ defmodule NavEx.Adapter.ETSTest do
 
     test "if user existis but N exceeds user history returns success tuple with nil" do
       request_path = "/sample/request/0"
-      conn = conn(:get, request_path)
+      conn = conn(:get, request_path) |> Plug.Session.call(@session_options) |> fetch_session()
       {:ok, conn} = ETS.insert(conn)
 
       assert {:ok, nil} = ETS.path_at(conn, 9)
     end
 
     test "for not existing user returns not found error" do
-      conn = conn(:get, "/sample/request")
+      conn =
+        conn(:get, "/sample/request") |> Plug.Session.call(@session_options) |> fetch_session()
+
       assert {:error, :not_found} = ETS.last_path(conn)
     end
   end

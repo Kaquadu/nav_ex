@@ -12,7 +12,7 @@ defmodule NavEx.Adapter do
   @doc """
     Inserts the path into user's navigation history. Takes %Plug.Conn{} as
     an argument, based on that fetches or creates user's identity (for
-    example as an ID in cookies) and saves his path into the storage.
+    example as an ID in session) and saves his path into the storage.
   """
   @callback insert(%Plug.Conn{}) :: {:ok, %Plug.Conn{}}
 

@@ -6,7 +6,7 @@ defmodule NavEx.Adapters.ETS do
 
      ## Adapter config
       config NavEx.Adapters.ETS,
-        identity_key: "nav_ex_identity", # name of the key in cookies where the user's identity is saved
+        identity_key: "nav_ex_identity", # name of the key in session where the user's identity is saved
         table_name: :navigation_history # name of the ETS table
   """
 
@@ -16,7 +16,7 @@ defmodule NavEx.Adapters.ETS do
   alias NavEx.Adapters.ETS.RecordsStorage
 
   @key_length 128
-  @cookies_key Application.compile_env(:nav_ex, :adapter_config)[:identity_key] ||
+  @session_key Application.compile_env(:nav_ex, :adapter_config)[:identity_key] ||
                  "nav_ex_identity"
 
   @impl NavEx.Adapter
@@ -67,24 +67,24 @@ defmodule NavEx.Adapters.ETS do
   ###
 
   defp maybe_insert_identity(%Plug.Conn{} = conn) do
-    case fetch_cookies(conn) do
-      %{cookies: %{@cookies_key => user_identity}} ->
+    case get_session(conn, @session_key) do
+      nil ->
+        user_identity = create_user_identity()
+        conn = put_session(conn, @session_key, user_identity)
         {conn, user_identity}
 
-      _no_identity ->
-        user_identity = create_user_identity()
-        conn = put_resp_cookie(conn, @cookies_key, user_identity)
+      user_identity ->
         {conn, user_identity}
     end
   end
 
   defp get_identity(%Plug.Conn{} = conn) do
-    case fetch_cookies(conn) do
-      %{cookies: %{@cookies_key => user_identity}} ->
-        {:ok, user_identity}
-
-      _no_identity ->
+    case get_session(conn, @session_key) do
+      nil ->
         {:error, :not_found}
+
+      user_identity ->
+        {:ok, user_identity}
     end
   end
 

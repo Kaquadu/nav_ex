@@ -14,7 +14,7 @@ defmodule NavEx.Adapter.SessionTest do
   end
 
   describe "insert/1" do
-    test "for new user inserts a new history record and identity into conn cookies", %{conn: conn} do
+    test "for new user inserts a new history record and identity into conn session", %{conn: conn} do
       assert {:ok, conn} = Session.insert(conn)
       assert get_session(conn, "nav_ex_history") == [conn.request_path]
     end
