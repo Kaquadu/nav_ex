@@ -1,11 +1,15 @@
 defmodule NavEx.Adapters.Session do
   @moduledoc """
     NavEx.Adapters.Session is adapter for keeping user's navigation history
-    utilizing Plug.Conn session.
+    utilizing Plug.Conn session. **Doesn't support LiveView sockets.**
 
      ## Adapter config
-      config NavEx.Adapters.Session,
+      adapter_config: %{
         history_key: "nav_ex_history" # name of the key in session where navigation history is saved
+      }
+
+    ## This adapter supports only Plug.Conn - no LiveView support due to session usage.
+    For LiveView sockets you have to use NavEx.Adapters.ETS.
   """
 
   @behaviour NavEx.Adapter
@@ -30,6 +34,12 @@ defmodule NavEx.Adapters.Session do
   end
 
   @impl NavEx.Adapter
+  def insert(%Phoenix.LiveView.Socket{} = _socket, _path) do
+    raise ArgumentError,
+          "NavEx.Adapters.Session doesn't support LiveView sockets. Please use Plug.Conn instead."
+  end
+
+  @impl NavEx.Adapter
   def list(%Plug.Conn{} = conn) do
     case get_session(conn, @session_key) do
       nil ->
@@ -38,6 +48,12 @@ defmodule NavEx.Adapters.Session do
       history ->
         {:ok, history}
     end
+  end
+
+  @impl NavEx.Adapter
+  def list(%Phoenix.LiveView.Socket{} = _socket) do
+    raise ArgumentError,
+          "NavEx.Adapters.Session doesn't support LiveView sockets. Please use Plug.Conn instead."
   end
 
   @impl NavEx.Adapter
@@ -55,6 +71,12 @@ defmodule NavEx.Adapters.Session do
   end
 
   @impl NavEx.Adapter
+  def last_path(%Phoenix.LiveView.Socket{} = _socket) do
+    raise ArgumentError,
+          "NavEx.Adapters.Session doesn't support LiveView sockets. Please use Plug.Conn instead."
+  end
+
+  @impl NavEx.Adapter
   def path_at(%Plug.Conn{} = conn, n) do
     case get_session(conn, @session_key) do
       nil ->
@@ -63,6 +85,12 @@ defmodule NavEx.Adapters.Session do
       history ->
         {:ok, Enum.at(history, n)}
     end
+  end
+
+  @impl NavEx.Adapter
+  def path_at(%Phoenix.LiveView.Socket{} = _socket, _n) do
+    raise ArgumentError,
+          "NavEx.Adapters.Session doesn't support LiveView sockets. Please use Plug.Conn instead."
   end
 
   ###

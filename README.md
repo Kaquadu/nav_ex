@@ -5,10 +5,10 @@ NavEx is the navigation history package for Elixir/Phoenix Framework. It uses ad
 ## Adapters
 
 ### NavEx.Adapters.ETS
-Keeps user's navigation history in the ETS. It saves user's identity in his cookies.
+Keeps user's navigation history in the ETS. It saves user's identity in his session.
 
 ### NavEx.Adapters.Session
-Keeps user's navigation history in session. Might lead to cookies overflow error when navigation history config or links are too long.
+Keeps user's navigation history in session. Might lead to session overflow error when navigation history config or links are too long.
 
 ## Installation
 NavEx can be installed by adding `nav_ex` as a dependency in `mix.exs`:
@@ -35,22 +35,27 @@ It might be added to HexDependencies once I feel that it is ready enough for it 
     }
 ```
 ### Adapters
+#### NavEx.Adapters.ETS
 ```
   ....
   adapter_config: %{
-    identity_key: "nav_ex_identity", # name of the key in cookies where the user's identity is saved
+    identity_key: "nav_ex_identity", # name of the key in session where the user's identity is saved
     table_name: :navigation_history # name of the ETS table
   }
 ```
+This adapter supports LiveView sockets.
 
+#### NavEx.Adapters.Session
 ```
   ....
   adapter_config: %{
     history_key: "nav_ex_history" # name of the key in session where navigation history is saved
   }
 ```
+This adapter doesn't support LiveView sockets.
 
 ## Usage
+For normal routes.
 
 ```
 defmodule MyApp.Router do
@@ -60,6 +65,24 @@ defmodule MyApp.Router do
     plug NavEx.Plug
   end
   ...
+end
+```
+
+For LiveView routes (live session routing included) (ETS adapter only)
+```
+# you can use LiveView's on_mount callback to set and DRY
+def mount(_params, %{"nav_ex_identity" => identity} = session, socket) do
+  socket = assign(socket, :nav_ex_identity, identity)
+  ...
+  {:ok, socket}
+end
+
+def handle_params(_params, uri, socket) do
+  path = ... path from uri logic
+  NavEx.insert(socket, uri)
+  ...
+
+  {:noreply, socket}
 end
 ```
 

@@ -4,7 +4,7 @@ defmodule NavEx.MixProject do
   def project do
     [
       app: :nav_ex,
-      version: "0.1.3",
+      version: "0.1.4",
       elixir: "~> 1.18.4",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
@@ -36,7 +36,8 @@ defmodule NavEx.MixProject do
     [
       {:plug_cowboy, "~> 2.7"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.38", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.38", only: :dev, runtime: false},
+      {:phoenix_live_view, "~> 1.0"}
     ]
   end
 

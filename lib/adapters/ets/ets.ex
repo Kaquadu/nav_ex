@@ -5,9 +5,14 @@ defmodule NavEx.Adapters.ETS do
     module to interact with the ETS table.
 
      ## Adapter config
-      config NavEx.Adapters.ETS,
+     adapter_config: %{
         identity_key: "nav_ex_identity", # name of the key in session where the user's identity is saved
         table_name: :navigation_history # name of the ETS table
+     }
+
+     ## This adapter supports both Plug.Conn and Phoenix.LiveView.Socket.
+     For LiveView sockets you have to make sure to put the same user's identity
+     that was stored in the session into the socket assigns under the identity key (as atom!).
   """
 
   @behaviour NavEx.Adapter
@@ -31,10 +36,40 @@ defmodule NavEx.Adapters.ETS do
   end
 
   @impl NavEx.Adapter
+  def insert(%Phoenix.LiveView.Socket{assigns: assigns} = socket, path) do
+    key = String.to_atom(@session_key)
+    user_identity = Map.get(assigns, key)
+
+    if is_nil(user_identity) do
+      raise ArgumentError,
+            "NavEx.Adapters.ETS requires user identity to be set in socket assigns under the key ':#{@session_key}'."
+    end
+
+    {:ok, _result} = RecordsStorage.insert(user_identity, path)
+
+    {:ok, socket}
+  end
+
+  @impl NavEx.Adapter
   def list(%Plug.Conn{} = conn) do
     with {:ok, user_identity} <- get_identity(conn),
          {:ok, [{_user_identity, list}]} <- RecordsStorage.list(user_identity) do
       {:ok, list}
+    end
+  end
+
+  @impl NavEx.Adapter
+  def list(%Phoenix.LiveView.Socket{assigns: assigns} = _socket) do
+    key = String.to_atom(@session_key)
+    user_identity = Map.get(assigns, key)
+
+    if is_nil(user_identity) do
+      {:error, :not_found}
+    else
+      case RecordsStorage.list(user_identity) do
+        {:ok, [{_user_identity, list}]} -> {:ok, list}
+        error -> error
+      end
     end
   end
 
@@ -52,6 +87,20 @@ defmodule NavEx.Adapters.ETS do
   end
 
   @impl NavEx.Adapter
+  def last_path(%Phoenix.LiveView.Socket{assigns: assigns} = _socket) do
+    key = String.to_atom(@session_key)
+    user_identity = Map.get(assigns, key)
+
+    case user_identity do
+      nil ->
+        {:error, :not_found}
+
+      _ ->
+        RecordsStorage.last_path(user_identity)
+    end
+  end
+
+  @impl NavEx.Adapter
   def path_at(%Plug.Conn{} = conn, n) do
     conn
     |> get_identity()
@@ -61,6 +110,20 @@ defmodule NavEx.Adapters.ETS do
 
       error ->
         error
+    end
+  end
+
+  @impl NavEx.Adapter
+  def path_at(%Phoenix.LiveView.Socket{assigns: assigns}, n) do
+    key = String.to_atom(@session_key)
+    user_identity = Map.get(assigns, key)
+
+    case user_identity do
+      nil ->
+        {:error, :not_found}
+
+      _ ->
+        RecordsStorage.path_at(user_identity, n)
     end
   end
 

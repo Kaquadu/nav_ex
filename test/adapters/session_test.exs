@@ -13,7 +13,7 @@ defmodule NavEx.Adapter.SessionTest do
     %{conn: conn(:get, "/sample/path") |> Plug.Session.call(@session_options) |> fetch_session()}
   end
 
-  describe "insert/1" do
+  describe "insert/1 (Plug.Conn)" do
     test "for new user inserts a new history record and identity into conn session", %{conn: conn} do
       assert {:ok, conn} = Session.insert(conn)
       assert get_session(conn, "nav_ex_history") == [conn.request_path]
@@ -53,7 +53,17 @@ defmodule NavEx.Adapter.SessionTest do
     end
   end
 
-  describe "list/1" do
+  describe "insert/2 (Phoenix.LiveView.Socket)" do
+    test "raises error if called with Phoenix.LiveView.Socket" do
+      socket = %Phoenix.LiveView.Socket{}
+
+      assert_raise ArgumentError, ~r/doesn't support LiveView sockets/, fn ->
+        Session.insert(socket, "/sample/path")
+      end
+    end
+  end
+
+  describe "list/1 (Plug.Conn)" do
     test "if connection has navigation history returns it", %{conn: conn} do
       assert {:ok, conn} = Session.insert(conn)
       assert {:ok, [zero_path]} = Session.list(conn)
@@ -65,7 +75,17 @@ defmodule NavEx.Adapter.SessionTest do
     end
   end
 
-  describe "last_path/1" do
+  describe "list/1 (Phoenix.LiveView.Socket)" do
+    test "raises error if called with Phoenix.LiveView.Socket" do
+      socket = %Phoenix.LiveView.Socket{}
+
+      assert_raise ArgumentError, ~r/doesn't support LiveView sockets/, fn ->
+        Session.list(socket)
+      end
+    end
+  end
+
+  describe "last_path/1 (Plug.Conn)" do
     test "if user existis and has at least 2 records returns success tuple with 2nd record", %{
       conn: conn
     } do
@@ -102,7 +122,17 @@ defmodule NavEx.Adapter.SessionTest do
     end
   end
 
-  describe "path_at/2" do
+  describe "last_path/1 (Phoenix.LiveView.Socket)" do
+    test "raises error if called with Phoenix.LiveView.Socket" do
+      socket = %Phoenix.LiveView.Socket{}
+
+      assert_raise ArgumentError, ~r/doesn't support LiveView sockets/, fn ->
+        Session.last_path(socket)
+      end
+    end
+  end
+
+  describe "path_at/2 (Plug.Conn)" do
     test "if user existis returns Nth record counting from 0", %{conn: conn} do
       conn =
         Enum.reduce(1..10, conn, fn n, conn ->
@@ -145,6 +175,16 @@ defmodule NavEx.Adapter.SessionTest do
 
     test "for not existing user returns not found error", %{conn: conn} do
       assert {:error, :not_found} = Session.path_at(conn, 2)
+    end
+  end
+
+  describe "path_at/2 (Phoenix.LiveView.Socket)" do
+    test "raises error if called with Phoenix.LiveView.Socket" do
+      socket = %Phoenix.LiveView.Socket{}
+
+      assert_raise ArgumentError, ~r/doesn't support LiveView sockets/, fn ->
+        Session.path_at(socket, 2)
+      end
     end
   end
 end
