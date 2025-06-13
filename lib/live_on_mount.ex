@@ -21,6 +21,6 @@ defmodule NavEx.LiveOnMount do
             "NavEx requires user identity to be set in session under the key '#{@session_key}'."
     end
 
-    {:cont, assign(socket, :nav_ex_user_identity, user_identity)}
+    {:cont, assign(socket, :nav_ex_identity, user_identity)}
   end
 end
