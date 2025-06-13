@@ -11,6 +11,7 @@ defmodule NavEx do
     ## Configuration:
         config :nav_ex,
         tracked_methods: ["GET"], # what methods to track
+        excluded_paths: ["/admin", "/dev], # paths you won't need to keep track on
         history_length: 10, # what is the history list length per user
         adapter: NavEx.Adapters.ETS # adapter used by NavEx to save data
         adapter_config: ... # adapter specific configuration

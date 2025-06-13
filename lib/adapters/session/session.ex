@@ -19,11 +19,21 @@ defmodule NavEx.Adapters.Session do
   @session_key Application.compile_env(:nav_ex, :adapter_config)[:history_key] || "nav_ex_history"
   @history_length (Application.compile_env(:nav_ex, :history_length) || 10) + 1
 
+  @excluded_paths Application.compile_env(:nav_ex, :excluded_paths) || ["/exclude"]
+
   @impl NavEx.Adapter
   def children, do: []
 
   @impl NavEx.Adapter
   def insert(%Plug.Conn{request_path: request_path} = conn) do
+    if Enum.any?(@excluded_paths, &String.starts_with?(request_path, &1)) do
+      {:ok, conn}
+    else
+      do_insert(conn, request_path)
+    end
+  end
+
+  defp do_insert(conn, request_path) do
     case get_session(conn, @session_key) do
       nil ->
         {:ok, put_session(conn, @session_key, [request_path])}

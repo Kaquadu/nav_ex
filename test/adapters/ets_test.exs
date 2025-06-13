@@ -65,6 +65,15 @@ defmodule NavEx.Adapter.ETSTest do
       assert result_path == "/sample/request/20"
       assert length(history) == 11
     end
+
+    test "respects excluded paths and does not insert them into history" do
+      request_path = "/excluded/path"
+      conn = conn(:get, request_path) |> Plug.Session.call(@session_options) |> fetch_session()
+
+      assert {:ok, conn} = ETS.insert(conn)
+
+      assert {:ok, []} = ETS.list(conn)
+    end
   end
 
   describe "insert/2 (Phoenix.LiveView.Socket)" do
@@ -90,6 +99,15 @@ defmodule NavEx.Adapter.ETSTest do
       assert_raise ArgumentError, fn ->
         ETS.insert(socket, "/sample/request/0")
       end
+    end
+
+    test "respoects excluded paths and does not insert them into history" do
+      socket = %Phoenix.LiveView.Socket{assigns: %{nav_ex_identity: "user_1"}}
+      request_path = "/excluded/path"
+
+      assert {:ok, socket} = ETS.insert(socket, request_path)
+
+      assert {:ok, []} = ETS.list(socket)
     end
   end
 

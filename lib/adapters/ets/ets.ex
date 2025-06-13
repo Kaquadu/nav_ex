@@ -24,15 +24,21 @@ defmodule NavEx.Adapters.ETS do
   @session_key Application.compile_env(:nav_ex, :adapter_config)[:identity_key] ||
                  "nav_ex_identity"
 
+  @excluded_paths Application.compile_env(:nav_ex, :excluded_paths) || ["/exclude"]
+
   @impl NavEx.Adapter
   def children, do: [NavEx.Adapters.ETS.RecordsStorage]
 
   @impl NavEx.Adapter
   def insert(%Plug.Conn{request_path: request_path} = conn) do
     {conn, user_identity} = maybe_insert_identity(conn)
-    {:ok, _result} = RecordsStorage.insert(user_identity, request_path)
 
-    {:ok, conn}
+    if Enum.any?(@excluded_paths, &String.starts_with?(request_path, &1)) do
+      {:ok, conn}
+    else
+      RecordsStorage.insert(user_identity, request_path)
+      {:ok, conn}
+    end
   end
 
   @impl NavEx.Adapter
@@ -45,9 +51,12 @@ defmodule NavEx.Adapters.ETS do
             "NavEx.Adapters.ETS requires user identity to be set in socket assigns under the key ':#{@session_key}'."
     end
 
-    {:ok, _result} = RecordsStorage.insert(user_identity, path)
-
-    {:ok, socket}
+    if Enum.any?(@excluded_paths, &String.starts_with?(path, &1)) do
+      {:ok, socket}
+    else
+      RecordsStorage.insert(user_identity, path)
+      {:ok, socket}
+    end
   end
 
   @impl NavEx.Adapter
