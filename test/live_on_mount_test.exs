@@ -3,7 +3,7 @@ defmodule NavEx.LiveOnMountTest do
 
   alias NavEx.LiveOnMount
 
-  @session_key Application.compile_env(:nav_ex, :session_key) || "nav_ex_user_identity"
+  @session_key Application.compile_env(:nav_ex, :identity_key) || "nav_ex_identity"
 
   test "on_mount assigns user identity from session" do
     user_identity = "test_user"
@@ -11,7 +11,7 @@ defmodule NavEx.LiveOnMountTest do
 
     {:cont, socket} = LiveOnMount.on_mount(:nav_ex_init, %{}, session, %Phoenix.LiveView.Socket{})
 
-    assert socket.assigns[:nav_ex_user_identity] == user_identity
+    assert socket.assigns[:nav_ex_identity] == user_identity
   end
 
   test "on_mount raises error if user identity is not in session" do

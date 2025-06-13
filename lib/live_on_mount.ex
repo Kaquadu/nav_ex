@@ -6,7 +6,7 @@ defmodule NavEx.LiveOnMount do
 
   use Phoenix.LiveView
 
-  @session_key Application.compile_env(:nav_ex, :session_key) || "nav_ex_user_identity"
+  @session_key Application.compile_env(:nav_ex, :identity_key) || "nav_ex_identity"
 
   @doc """
   Mounts the LiveView and assigns the user identity from the session.
